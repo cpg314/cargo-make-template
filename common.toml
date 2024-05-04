@@ -1,0 +1,55 @@
+[config]
+skip_core_tasks = true
+default_to_workspace = false
+init_task = "init"
+
+[env]
+ARCH = "x86_64-unknown-linux-gnu" 
+BUILD_OUT = "target-cross/${ARCH}/release"
+PACKAGES = "target-cross/packages/${CARGO_MAKE_CRATE_VERSION}"
+RELEASE = "1"
+TAR = "${PACKAGES}/${CARGO_MAKE_PROJECT_NAME}-${CARGO_MAKE_PROJECT_VERSION}-${RELEASE}-${CARGO_MAKE_RUST_TARGET_ARCH}.tar.gz"
+BINARIES = { script = ["cat nfpm.yaml | yq  -r '.provides|join(\" \")'"] }
+
+[tasks.init]
+script = '''
+#!/usr/bin/env bash
+set -euo pipefail
+mkdir -p $BUILD_OUT
+mkdir -p $PACKAGES
+'''
+
+[tasks.cross]
+command = "cross"
+args = ["build", "--workspace", "-r", "--target", "${ARCH}", "--target-dir", "target-cross"]
+
+[tasks.about]
+command = "cargo"
+condition = { files_modified = { input = ["${CARGO_MAKE_WORKING_DIRECTORY}/**/Cargo.toml"], output = ["${BUILD_OUT}/licenses.html"] } }
+args = ["about", "generate", "about.hbs", "-o", "${BUILD_OUT}/licenses.html"]
+
+[tasks.build]
+dependencies = ["about", "cross"]
+
+[tasks.tar]
+dependencies = ["build"]
+command = "tar"
+args = ["czf", "${TAR}", "-C", "${BUILD_OUT}", "@@split(BINARIES, )", "licenses.html"]
+
+[tasks.nfpm]
+dependencies = ["build"]
+script = '''
+#!/usr/bin/env bash
+set -euo pipefail
+for PACKAGER in deb archlinux; do
+    nfpm pkg --packager $PACKAGER -t $PACKAGES
+done
+'''
+
+[tasks.cliff]
+command = "git"
+args = ["cliff", "-l"]
+
+[tasks.packages]
+dependencies = ["nfpm", "tar"]
+
