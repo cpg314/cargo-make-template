@@ -53,3 +53,18 @@ args = ["cliff", "-l"]
 [tasks.packages]
 dependencies = ["nfpm", "tar"]
 
+
+[tasks.docker]
+dependencies = ["build"]
+command = "docker"
+args = ["build", "-t", "${CARGO_MAKE_PROJECT_NAME}:${CARGO_MAKE_PROJECT_VERSION}", "."]
+
+[tasks.docker-push]
+dependencies = ["docker"]
+script = '''
+#!/usr/bin/env bash
+set -euo pipefail
+DEST=ghcr.io/cpg314/${CARGO_MAKE_PROJECT_NAME}:${CARGO_MAKE_PROJECT_VERSION} 
+docker tag ${CARGO_MAKE_PROJECT_NAME}:${CARGO_MAKE_PROJECT_VERSION} $DEST
+docker push $DEST
+'''
