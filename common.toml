@@ -6,7 +6,7 @@ init_task = "init"
 [env]
 ARCH = "x86_64-unknown-linux-gnu" 
 BUILD_OUT = "target-cross/${ARCH}/release"
-PACKAGES = "target-cross/packages/${CARGO_MAKE_CRATE_VERSION}"
+PACKAGES = "target-cross/packages/${CARGO_MAKE_PROJECT_VERSION}"
 RELEASE = "1"
 TAR = "${PACKAGES}/${CARGO_MAKE_PROJECT_NAME}-${CARGO_MAKE_PROJECT_VERSION}-${RELEASE}-${CARGO_MAKE_RUST_TARGET_ARCH}.tar.gz"
 BINARIES = { script = ["cat nfpm.yaml | yq  -r '.provides|join(\" \")'"] }
