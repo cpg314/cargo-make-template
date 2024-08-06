@@ -68,3 +68,13 @@ DEST=ghcr.io/cpg314/${CARGO_MAKE_PROJECT_NAME}:${CARGO_MAKE_PROJECT_VERSION}
 docker tag ${CARGO_MAKE_PROJECT_NAME}:${CARGO_MAKE_PROJECT_VERSION} $DEST
 docker push $DEST
 '''
+
+[tasks.release]
+dependencies = ["packages"]
+script = '''
+#!/usr/bin/env bash
+set -euo pipefail
+TAG="v$CARGO_MAKE_PROJECT_VERSION"
+git push origin tag $TAG
+gh release create --draft --title $TAG --notes "" $TAG $PACKAGES/*
+'''
