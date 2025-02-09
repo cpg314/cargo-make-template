@@ -70,7 +70,7 @@ docker push $DEST
 '''
 
 [tasks.release]
-dependencies = ["packages"]
+dependencies = ["packages", "docker-push"]
 script = '''
 #!/usr/bin/env bash
 set -euo pipefail
